@@ -9,14 +9,20 @@ import android.graphics.drawable.Drawable;
 public class CardPair {
     private Drawable backImage;
     private Drawable frontImage;
-    private boolean openned;
+    //mode: 0, none of the pair flipped
+    //mode: 1, first card flipped
+    //mode: 2, second card flipped
+    //mode: 3, both flipped
+    private int mode;
     private int firstID;
     private int secondID;
 
     public CardPair(Context context, int ID1, int ID2) {
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.tinder);
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.logo);
         backImage = new BitmapDrawable(context.getResources(), bitmap);
-        openned = false;
+        Bitmap b = BitmapFactory.decodeResource(context.getResources(), R.drawable.tinder);
+        frontImage = new BitmapDrawable(context.getResources(), b);
+        mode = 0;
         firstID = ID1;
         secondID = ID2;
     }
@@ -28,12 +34,12 @@ public class CardPair {
         return secondID;
     }
 
-    public void setOpenned(boolean bool) {
-        openned = bool;
+    public void setMode(int mode) {
+        this.mode = mode;
     }
 
-    public boolean isOpenned() {
-        return openned;
+    public int getMode () {
+        return mode;
     }
 
     public Drawable getBackImage() {
