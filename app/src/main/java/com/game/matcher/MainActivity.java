@@ -8,12 +8,10 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private ImageButton buttonPlay;
-    ArrayList<String> runningactivities = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

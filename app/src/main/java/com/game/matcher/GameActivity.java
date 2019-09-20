@@ -3,6 +3,8 @@ package com.game.matcher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -12,6 +14,17 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -21,6 +34,7 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<ImageButton> buttons;
     private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<CardPair> cardsPairs;
+    private Drawable drawable;
     private ArrayList<String> ImagesURLs;
     private ArrayList<Integer> mapCardsToButtons;
     private ImageButton b0;
@@ -33,6 +47,8 @@ public class GameActivity extends AppCompatActivity {
     private ImageButton b7;
     private ImageButton b8;
     private ImageButton b9;
+    private boolean isDone;
+    private int urlIndex;
 
     private GetJsonData data;
 
@@ -47,12 +63,6 @@ public class GameActivity extends AppCompatActivity {
         for (CardPair p : cardsPairs) {
             Log.d("Pairs", Integer.toString(p.getFirstID()) + " and " + Integer.toString(p.getSecondID()));
         }
-        if (data.getStatus() == AsyncTask.Status.RUNNING) {
-            Log.d("Async", "running");
-        }
-        else {
-            Log.d("Async", "cancelled");
-        }
     }
 
     @Override
@@ -64,6 +74,13 @@ public class GameActivity extends AppCompatActivity {
         cardsPairs.clear();
         ImagesURLs.clear();
         mapCardsToButtons.clear();
+
+        if (data.getStatus() == AsyncTask.Status.RUNNING) {
+            Log.d("Async", "running");
+        }
+        else if (data.getStatus() == AsyncTask.Status.FINISHED){
+            Log.d("Async", "cancelled");
+        }
     }
 
     private void shuffleCards(int numberOfCards){
@@ -100,19 +117,22 @@ public class GameActivity extends AppCompatActivity {
         ImagesURLs = new ArrayList<String>();
         data = new GetJsonData();
         data.execute();
-        ImagesURLs = data.getImagesURls();
+        isDone = false;
+        while(!isDone){Log.d("isDone", "false");}
         for (String s : ImagesURLs) {
             Log.d("ImagesUrls", s);
         }
-        /*Random rnd = new Random();
+        Random rnd = new Random();
         for (int i = 0; i < numberOfCards / 2; ++i) {
             int index = rnd.nextInt(ImagesURLs.size());
-            DownloadImageTask task = new DownloadImageTask(ImagesURLs.get(i));
+            urlIndex = index;
+            DownloadImageTask task = new DownloadImageTask();
             task.execute();
-            Drawable d = new BitmapDrawable(getResources(), task.getBitmap());
-            cardsPairs.get(i).setFrontImage(d);
+            isDone = false;
+            while(!isDone){Log.d("isDone", "false");}
+            cardsPairs.get(i).setFrontImage(drawable);
             ImagesURLs.remove(index);
-        }*/
+        }
     }
 
     private void setCards(int numberOfCards) {
@@ -295,5 +315,99 @@ public class GameActivity extends AppCompatActivity {
         pair1.setMode(0);
         cardsFlipped = 0;
         cardsFlippedIndex.clear();
+    }
+
+    private class GetJsonData extends AsyncTask<Void, Void, Void> {
+
+        private JSONArray products;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                getData();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Log.d("waiting", "doInBackground");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            Log.d("waiting", "onPostExecute");
+            super.onPostExecute(v);
+        }
+
+        @Override
+        protected void onCancelled() {
+            handleOnCancelled();
+        }
+
+        private void getData() throws IOException, JSONException {
+            JSONObject json = readJsonFromUrl("https://shopicruit.myshopify.com/admin/products.json?page=1&access_token=c32313df0d0ef512ca64d5b336a0d7c6");
+            try {
+                products = json.getJSONArray("products");
+                for (int i = 0; i < products.length(); ++i) {
+                    ImagesURLs.add(products.getJSONObject(i).getJSONObject("image").getString("src"));
+                }
+                isDone = true;
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+        }
+
+        private String readAll(Reader rd) throws IOException {
+            StringBuilder sb = new StringBuilder();
+            int cp;
+            while ((cp = rd.read()) != -1) {
+                sb.append((char) cp);
+            }
+            return sb.toString();
+        }
+
+        public JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+            InputStream is = new URL(url).openStream();
+            try {
+                BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+                String jsonText = readAll(rd);
+                JSONObject json = new JSONObject(jsonText);
+                return json;
+            } finally {
+                is.close();
+            }
+        }
+
+        private void handleOnCancelled() {
+            ImagesURLs.clear();
+            Log.d("waiting", "onCancelled");
+        }
+    }
+
+    private class DownloadImageTask extends AsyncTask<String, Void, Void> {
+        Bitmap bitmap;
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            String url = ImagesURLs.get(urlIndex);
+            bitmap = null;
+            try {
+                InputStream in = new java.net.URL(url).openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+                drawable = new BitmapDrawable(getResources(), bitmap);
+                isDone = true;
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
     }
 }
