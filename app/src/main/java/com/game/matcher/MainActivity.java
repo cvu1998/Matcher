@@ -3,14 +3,17 @@ package com.game.matcher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private ImageButton buttonPlay;
+    ArrayList<String> runningactivities = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Function used to send the user to GradeActivty
     private void goToGameActivity() {
-        Intent intent = new Intent(this, GameActivity.class);
-        startActivity(intent);
+            Intent intent = new Intent(this, GameActivity.class);
+            startActivity(intent);
     }
 }

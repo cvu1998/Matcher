@@ -2,12 +2,15 @@ package com.game.matcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.pm.ActivityInfo;
+import android.app.Activity;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -18,6 +21,7 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<ImageButton> buttons;
     private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<CardPair> cardsPairs;
+    private ArrayList<String> ImagesURLs;
     private ArrayList<Integer> mapCardsToButtons;
     private ImageButton b0;
     private ImageButton b1;
@@ -30,33 +34,40 @@ public class GameActivity extends AppCompatActivity {
     private ImageButton b8;
     private ImageButton b9;
 
+    private GetJsonData data;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        generateCardsFrontImage(10);
         shuffleCards(10);
+        generateCardsFrontImage(10);
         setCards(10);
         for (CardPair p : cardsPairs) {
             Log.d("Pairs", Integer.toString(p.getFirstID()) + " and " + Integer.toString(p.getSecondID()));
         }
-        for (int i = 0; i < mapCardsToButtons.size(); ++i) {
-            Log.d("mapCardsToButtons", Integer.toString(mapCardsToButtons.get(i)));
+        if (data.getStatus() == AsyncTask.Status.RUNNING) {
+            Log.d("Async", "running");
+        }
+        else {
+            Log.d("Async", "cancelled");
         }
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         //Clear everything
         buttons.clear();
         cardsFlippedIndex.clear();
         cardsPairs.clear();
+        ImagesURLs.clear();
         mapCardsToButtons.clear();
     }
 
     private void shuffleCards(int numberOfCards){
+        cardsPairs = new ArrayList<CardPair>();
         ArrayList<Integer> cardsID = new ArrayList<Integer>();
         for(int i = 0; i < numberOfCards; ++i) {
             cardsID.add(i);
@@ -86,7 +97,22 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void generateCardsFrontImage(int numberOfCards){
-        cardsPairs = new ArrayList<CardPair>();
+        ImagesURLs = new ArrayList<String>();
+        data = new GetJsonData();
+        data.execute();
+        ImagesURLs = data.getImagesURls();
+        for (String s : ImagesURLs) {
+            Log.d("ImagesUrls", s);
+        }
+        /*Random rnd = new Random();
+        for (int i = 0; i < numberOfCards / 2; ++i) {
+            int index = rnd.nextInt(ImagesURLs.size());
+            DownloadImageTask task = new DownloadImageTask(ImagesURLs.get(i));
+            task.execute();
+            Drawable d = new BitmapDrawable(getResources(), task.getBitmap());
+            cardsPairs.get(i).setFrontImage(d);
+            ImagesURLs.remove(index);
+        }*/
     }
 
     private void setCards(int numberOfCards) {
@@ -101,7 +127,6 @@ public class GameActivity extends AppCompatActivity {
             }
         };
         setCardsFlipping();
-
     }
 
     private int getMatchingID(int index) {
@@ -221,11 +246,12 @@ public class GameActivity extends AppCompatActivity {
         if (iD == pair.getFirstID()) {
             if (pair.getMode() == 0) {
                 firstCard.setImageDrawable(pair.getFrontImage());
+                firstCard.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 firstCard.setEnabled(false);
                 pair.setMode(1);
-            }
-            else if (pair.getMode() == 2) {
+            } else if (pair.getMode() == 2) {
                 firstCard.setImageDrawable(pair.getFrontImage());
+                firstCard.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 firstCard.setEnabled(false);
                 secondCard.setEnabled(false);
                 pair.setMode(3);;
@@ -234,11 +260,12 @@ public class GameActivity extends AppCompatActivity {
         else {
             if (pair.getMode() == 0) {
                 secondCard.setImageDrawable(pair.getFrontImage());
+                secondCard.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 secondCard.setEnabled(false);
                 pair.setMode(2);
-            }
-            else if (pair.getMode() == 1) {
+            } else if (pair.getMode() == 1) {
                 secondCard.setImageDrawable(pair.getFrontImage());
+                secondCard.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 firstCard.setEnabled(false);
                 secondCard.setEnabled(false);
                 pair.setMode(3);
@@ -248,8 +275,7 @@ public class GameActivity extends AppCompatActivity {
         if (cardsFlipped == 2) {
             if (pair.getMode() != 3) {
                 flipCardsBack();
-            }
-            else {
+            } else {
                 cardsFlipped = 0;
                 cardsFlippedIndex.clear();
             }
@@ -259,10 +285,12 @@ public class GameActivity extends AppCompatActivity {
     private void flipCardsBack() {
         CardPair pair0 =  cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(0)));
         CardPair pair1 =  cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(1)));
-        buttons.get(cardsFlippedIndex.get(0)).setEnabled(true);
         buttons.get(cardsFlippedIndex.get(0)).setImageResource(R.drawable.logo);
-        buttons.get(cardsFlippedIndex.get(1)).setEnabled(true);
+        buttons.get(cardsFlippedIndex.get(0)).setScaleType(ImageView.ScaleType.FIT_XY);
+        buttons.get(cardsFlippedIndex.get(0)).setEnabled(true);
         buttons.get(cardsFlippedIndex.get(1)).setImageResource(R.drawable.logo);
+        buttons.get(cardsFlippedIndex.get(1)).setScaleType(ImageView.ScaleType.FIT_XY);
+        buttons.get(cardsFlippedIndex.get(1)).setEnabled(true);
         pair0.setMode(0);
         pair1.setMode(0);
         cardsFlipped = 0;
