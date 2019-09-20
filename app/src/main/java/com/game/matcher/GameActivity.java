@@ -58,8 +58,6 @@ public class GameActivity extends AppCompatActivity {
     private TextView victory;
     private ImageButton returnMain;
 
-    private GetJsonData data;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,14 +85,6 @@ public class GameActivity extends AppCompatActivity {
         cardsPairs.clear();
         ImagesURLs.clear();
         mapCardsToButtons.clear();
-
-        while (data.getStatus() != AsyncTask.Status.FINISHED) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        }
-        if (data.getStatus() != AsyncTask.Status.FINISHED) {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        }
     }
 
     private void shuffleCards(int numberOfCards){
@@ -108,14 +98,13 @@ public class GameActivity extends AppCompatActivity {
         int ID2 = -1;
         Random rnd = new Random();
         while(cardsPairs.size() < (numberOfCards / 2)) {
-            if (nRolls == 0) {
+            if (cardsID.size() > 0 && nRolls < 2) {
                 int index = rnd.nextInt(cardsID.size());
-                ID1 = cardsID.get(index);
-                cardsID.remove(index);
-                ++nRolls;
-            } else if (nRolls == 1) {
-                int index = rnd.nextInt(cardsID.size());
-                ID2 = cardsID.get(index);
+                if (nRolls == 0) {
+                    ID1 = cardsID.get(index);
+                } else if (nRolls == 1) {
+                    ID2 = cardsID.get(index);
+                }
                 cardsID.remove(index);
                 ++nRolls;
             } else if (ID1 != -1 && ID2 != -1) {
@@ -129,15 +118,13 @@ public class GameActivity extends AppCompatActivity {
 
     private void generateCardsFrontImage(int numberOfCards){
         ImagesURLs = new ArrayList<String>();
-        data = new GetJsonData();
-        data.execute();
+        new GetJsonData().execute();
         isDone = false;
         while(!isDone){Log.d("isDone", "false");}
         Random rnd = new Random();
         for (int i = 0; i < numberOfCards / 2; ++i) {
             urlIndex = rnd.nextInt(ImagesURLs.size());
-            DownloadImageTask task = new DownloadImageTask();
-            task.execute();
+            new DownloadImageTask().execute();
             isDone = false;
             while(!isDone){Log.d("isDone", "false");}
             cardsPairs.get(i).setFrontImage(drawable);
@@ -358,13 +345,11 @@ public class GameActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Log.d("waiting", "doInBackground");
             return null;
         }
 
         @Override
         protected void onPostExecute(Void v) {
-            Log.d("waiting", "onPostExecute");
             super.onPostExecute(v);
         }
 
@@ -410,7 +395,6 @@ public class GameActivity extends AppCompatActivity {
 
         private void handleOnCancelled() {
             ImagesURLs.clear();
-            Log.d("waiting", "onCancelled");
         }
     }
 
