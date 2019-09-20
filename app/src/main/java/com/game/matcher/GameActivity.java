@@ -3,6 +3,7 @@ package com.game.matcher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -11,8 +12,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +52,11 @@ public class GameActivity extends AppCompatActivity {
     private ImageButton b8;
     private ImageButton b9;
     private boolean isDone;
+    private int matched;
+    private TableLayout cardsTable;
     private int urlIndex;
+    private TextView victory;
+    private ImageButton returnMain;
 
     private GetJsonData data;
 
@@ -56,6 +64,11 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+        cardsTable = findViewById(R.id.cardsTable);
+        victory = findViewById(R.id.victory);
+        returnMain = findViewById(R.id.returnMain);
+
+        matched = 0;
 
         shuffleCards(10);
         generateCardsFrontImage(10);
@@ -75,11 +88,12 @@ public class GameActivity extends AppCompatActivity {
         ImagesURLs.clear();
         mapCardsToButtons.clear();
 
-        if (data.getStatus() == AsyncTask.Status.RUNNING) {
-            Log.d("Async", "running");
+        while (data.getStatus() != AsyncTask.Status.FINISHED) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         }
-        else if (data.getStatus() == AsyncTask.Status.FINISHED){
-            Log.d("Async", "cancelled");
+        if (data.getStatus() != AsyncTask.Status.FINISHED) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         }
     }
 
@@ -119,19 +133,15 @@ public class GameActivity extends AppCompatActivity {
         data.execute();
         isDone = false;
         while(!isDone){Log.d("isDone", "false");}
-        for (String s : ImagesURLs) {
-            Log.d("ImagesUrls", s);
-        }
         Random rnd = new Random();
         for (int i = 0; i < numberOfCards / 2; ++i) {
-            int index = rnd.nextInt(ImagesURLs.size());
-            urlIndex = index;
+            urlIndex = rnd.nextInt(ImagesURLs.size());
             DownloadImageTask task = new DownloadImageTask();
             task.execute();
             isDone = false;
             while(!isDone){Log.d("isDone", "false");}
             cardsPairs.get(i).setFrontImage(drawable);
-            ImagesURLs.remove(index);
+            ImagesURLs.remove(urlIndex);
         }
     }
 
@@ -296,6 +306,17 @@ public class GameActivity extends AppCompatActivity {
             if (pair.getMode() != 3) {
                 flipCardsBack();
             } else {
+                ++matched;
+                if (matched == cardsPairs.size())
+                {
+                    victory.setVisibility(View.VISIBLE);
+                    returnMain.setVisibility(View.VISIBLE);
+                    returnMain.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v) {
+                            goToMain();
+                        }
+                    });
+                }
                 cardsFlipped = 0;
                 cardsFlippedIndex.clear();
             }
@@ -316,6 +337,13 @@ public class GameActivity extends AppCompatActivity {
         cardsFlipped = 0;
         cardsFlippedIndex.clear();
     }
+
+    private void goToMain() {
+        this.finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
 
     private class GetJsonData extends AsyncTask<Void, Void, Void> {
 
