@@ -22,14 +22,14 @@ public class MainActivity extends AppCompatActivity {
 
         buttonPlay.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                goToGameActivity();
+                goToUserInputActivity();
             }
         });
     }
 
     //Function used to send the user to GradeActivty
-    private void goToGameActivity() {
-            Intent intent = new Intent(this, GameActivity.class);
+    private void goToUserInputActivity() {
+            Intent intent = new Intent(this, UserInputActivity.class);
             startActivity(intent);
     }
 }

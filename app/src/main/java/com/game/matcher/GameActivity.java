@@ -56,9 +56,12 @@ public class GameActivity extends AppCompatActivity {
         returnMain = findViewById(R.id.returnMain);
 
         matched = 0;
-        int numberOfCards = 36;
+        int numberOfCards = 2;
+        numberOfCards = getIntent().getIntExtra("numberOfPairs",2);
+        numberOfCards = numberOfCards * 2;
+        Log.d("numberOfPair", Integer.toString(numberOfCards));
 
-        shuffleCards(numberOfCards);
+        generateRandomPairs(numberOfCards);
         generateCardsFrontImage(numberOfCards);
         setCards(numberOfCards);
         for (CardPair p : cardsPairs) {
@@ -77,7 +80,7 @@ public class GameActivity extends AppCompatActivity {
         mapCardsToButtons.clear();
     }
 
-    private void shuffleCards(int numberOfCards){
+    private void generateRandomPairs(int numberOfCards){
         cardsPairs = new ArrayList<CardPair>();
         ArrayList<Integer> cardsID = new ArrayList<Integer>();
         for(int i = 0; i < numberOfCards; ++i) {

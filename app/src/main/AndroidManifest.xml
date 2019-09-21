@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.game.matcher">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,10 +11,15 @@
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GameActivity"
+        <activity
+            android:name=".UserInputActivity"
             android:screenOrientation="landscape">
         </activity>
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".GameActivity"
+            android:screenOrientation="landscape"></activity>
+        <activity
+            android:name=".MainActivity"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,6 +28,5 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>
