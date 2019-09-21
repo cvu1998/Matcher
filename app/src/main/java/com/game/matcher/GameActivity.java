@@ -2,7 +2,6 @@ package com.game.matcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,13 +10,9 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.View;
-import android.view.WindowManager;
+import android.view.View;;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -61,10 +56,11 @@ public class GameActivity extends AppCompatActivity {
         returnMain = findViewById(R.id.returnMain);
 
         matched = 0;
+        int numberOfCards = 36;
 
-        shuffleCards(20);
-        generateCardsFrontImage(20);
-        setCards(20);
+        shuffleCards(numberOfCards);
+        generateCardsFrontImage(numberOfCards);
+        setCards(numberOfCards);
         for (CardPair p : cardsPairs) {
             Log.d("Pairs", Integer.toString(p.getFirstID()) + " and " + Integer.toString(p.getSecondID()));
         }
@@ -151,29 +147,34 @@ public class GameActivity extends AppCompatActivity {
 
     private void setCardsFlipping(int numberOfCards) {
         int z = 0;
-        for (int i = 0; i < 4; ++i) {
-            TableRow tr = findViewById(R.id.row1);
+        float scale = getResources().getDisplayMetrics().density;
+        int height = 260;
+        int padding= 20;
+        int nRowNElements[] = new int[2];
+        nRowNElements = findOptimalTableLayoutDisplay(numberOfCards);
+        for (int i = 0; i < nRowNElements[0]; ++i) {
+            TableRow tableRow = findViewById(R.id.row1);
             if (i == 1) {
-                tr = findViewById(R.id.row2);
-                Log.d("tablerow", "2");
+                tableRow = findViewById(R.id.row2);
             }
             else if (i == 2) {
-                tr = findViewById(R.id.row3);
-                Log.d("tablerow", "3");
+                tableRow = findViewById(R.id.row3);
             }
             else if (i == 3){
-                tr = findViewById(R.id.row4);
-                Log.d("tablerow", "4");
+                tableRow = findViewById(R.id.row4);
             }
-            for (int j = 0; j < 5; ++j) {
+            for (int j = 0; j < nRowNElements[1]; ++j) {
                 Button card = new Button(this);
-                int paddingDp = 100 / numberOfCards;
-                TableRow.LayoutParams params = new TableRow.LayoutParams(1800 / numberOfCards, 3900 / numberOfCards, 1);
-                params.setMargins(paddingDp,paddingDp,paddingDp,paddingDp);
-                card.setLayoutParams(params);
                 card.setBackgroundResource(R.drawable.logo);
-                card.setTag(z);
+
+                int adjustedPadding = (int) (padding * scale + 0.5f) / nRowNElements[0];
+                int adjustedHeight = (int) (height * scale + 0.5f) / nRowNElements[0];
+                TableRow.LayoutParams params = new TableRow.LayoutParams(0, adjustedHeight, 1);
+                params.setMargins(adjustedPadding,adjustedPadding,adjustedPadding,adjustedPadding);
+                card.setLayoutParams(params);
                 card.setVisibility(View.VISIBLE);
+
+                card.setTag(z);
                 card.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         int buttonIndex = (Integer)v.getTag();
@@ -183,20 +184,28 @@ public class GameActivity extends AppCompatActivity {
                     }
                 });
                 buttons.add(card);
-                tr.addView(card);
+                tableRow.addView(card);
                 ++z;
             }
         }
     }
 
-    /*private int findCardsIndex(Object o) {
-        for (int i = 0; i < buttons.size(); ++i) {
-            if ((Integer)buttons.get(i).getTag() == i) {
-                return i;
+    private int[] findOptimalTableLayoutDisplay(int numberOfCards) {
+        int nRowNElements[] = new int[2];
+        int nElementsInRow = Integer.MAX_VALUE;
+        int row = 0;
+        for (int i = 1; i < 5; ++i) {
+            if (numberOfCards % i == 0) {
+                if ((numberOfCards / i) >= 3 && (numberOfCards / i) < nElementsInRow) {
+                    row = i;
+                    nElementsInRow = numberOfCards / i;
+                }
             }
         }
-        return -1;
-    }*/
+        nRowNElements[0] = row;
+        nRowNElements [1] = nElementsInRow;
+        return nRowNElements;
+    }
 
     private void updateCardsPairs(int iD, CardPair pair, Button firstCard, Button secondCard) {
         if (iD == pair.getFirstID()) {
