@@ -1,7 +1,5 @@
 package com.game.matcher;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,12 +9,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,19 +31,21 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Random;
 
+;
+
 public class GameActivity extends AppCompatActivity {
 
-    private int cardsFlipped;
     private ArrayList<Button> buttons;
-    private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<CardPair> cardsPairs;
-    private Drawable drawable;
-    private ArrayList<String> ImagesURLs;
+    private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<Integer> mapCardsToButtons;
-    private boolean isDone;
+    private ArrayList<String> ImagesURLs;
+    private int cardsFlipped;
     private int matched;
     private int urlIndex;
-    private long startTime = 0;
+    private long startTime;
+    private boolean isDone;
+    private Drawable drawable;
     private TextView score;
     private TextView state;
     private TextView timer;
@@ -188,21 +189,18 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void setCardsFlipping(int numberOfCards) {
-        int z = 0;
-        float scale = getResources().getDisplayMetrics().density;
         int height = 260;
         int padding= 20;
-        int nRowNElements[] = new int[2];
-        nRowNElements = findOptimalTableLayoutDisplay(numberOfCards);
+        int z = 0;
+        float scale = getResources().getDisplayMetrics().density;
+        int nRowNElements[] = findOptimalTableLayoutDisplay(numberOfCards);
         for (int i = 0; i < nRowNElements[0]; ++i) {
             TableRow tableRow = findViewById(R.id.row1);
             if (i == 1) {
                 tableRow = findViewById(R.id.row2);
-            }
-            else if (i == 2) {
+            } else if (i == 2) {
                 tableRow = findViewById(R.id.row3);
-            }
-            else if (i == 3){
+            } else if (i == 3){
                 tableRow = findViewById(R.id.row4);
             }
             for (int j = 0; j < nRowNElements[1]; ++j) {
@@ -252,27 +250,21 @@ public class GameActivity extends AppCompatActivity {
     private void updateCardsPairs(int iD, CardPair pair, Button firstCard, Button secondCard) {
         if (iD == pair.getFirstID()) {
             if (pair.getMode() == 0) {
-                firstCard.setBackground(pair.getFrontImage());
-                firstCard.setEnabled(false);
                 pair.setMode(1);
             } else if (pair.getMode() == 2) {
-                firstCard.setBackground(pair.getFrontImage());
-                firstCard.setEnabled(false);
-                secondCard.setEnabled(false);
-                pair.setMode(3);;
+                pair.setMode(3);
             }
+            firstCard.setBackground(pair.getFrontImage());
+            firstCard.setEnabled(false);
         }
         else {
             if (pair.getMode() == 0) {
-                secondCard.setBackground(pair.getFrontImage());
-                secondCard.setEnabled(false);
                 pair.setMode(2);
             } else if (pair.getMode() == 1) {
-                secondCard.setBackground(pair.getFrontImage());
-                firstCard.setEnabled(false);
-                secondCard.setEnabled(false);
                 pair.setMode(3);
             }
+            secondCard.setBackground(pair.getFrontImage());
+            secondCard.setEnabled(false);
         }
         ++cardsFlipped;
         if (cardsFlipped == 2) {
@@ -280,20 +272,22 @@ public class GameActivity extends AppCompatActivity {
                 flipCardsBack();
             } else {
                 ++matched;
-                state.setText("IT'S A MATCH!");
-                state.setVisibility(View.VISIBLE);
                 score.setText("Score: " + Integer.toString(matched) + " / " + Integer.toString(cardsPairs.size()));
                 if (matched == cardsPairs.size())
                 {
                     state.setText("YOU WIN!");
                     state.setVisibility(View.VISIBLE);
-                    returnMain.setVisibility(View.VISIBLE);
                     timerHandler.removeCallbacks(timerRunnable);
+
+                    returnMain.setVisibility(View.VISIBLE);
                     returnMain.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
                             goToMain();
                         }
                     });
+                } else {
+                    state.setText("IT'S A MATCH!");
+                    state.setVisibility(View.VISIBLE);
                 }
                 cardsFlipped = 0;
                 cardsFlippedIndex.clear();
@@ -302,16 +296,14 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void flipCardsBack() {
-        CardPair pair0 =  cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(0)));
-        CardPair pair1 =  cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(1)));
+        cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(0))).setMode(0);
+        cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(1))).setMode(0);
         buttons.get(cardsFlippedIndex.get(0)).setBackgroundResource(R.drawable.logo);
         buttons.get(cardsFlippedIndex.get(0)).setEnabled(true);
         buttons.get(cardsFlippedIndex.get(1)).setBackgroundResource(R.drawable.logo);
         buttons.get(cardsFlippedIndex.get(1)).setEnabled(true);
-        pair0.setMode(0);
-        pair1.setMode(0);
-        cardsFlipped = 0;
         state.setVisibility(View.INVISIBLE);
+        cardsFlipped = 0;
         cardsFlippedIndex.clear();
     }
 
