@@ -51,7 +51,7 @@ public class UserInputActivity extends AppCompatActivity {
             if (numberOfPair > 1) {
                 if (!isOnlyDividableBy2() && numberOfPair < 25) {
                     return true;
-                } else if (isOnlyDividableBy2() && numberOfPair < 10) {
+                } else if (isOnlyDividableBy2() && numberOfPair < 11) {
                     return true;
                 } else {
                     invalidInput.setText("Number of pairs too large (ideally number is multiple of 2 or 3)");

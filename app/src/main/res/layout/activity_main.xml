@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     tools:context=".MainActivity">
 
     <ImageButton
@@ -11,12 +12,13 @@
         android:layout_width="250dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/play"
+        android:background="@drawable/play1"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.965"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.50" />
+        app:layout_constraintVertical_bias="0.940" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

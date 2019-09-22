@@ -33,7 +33,7 @@ import java.util.Random;
 
 public class GameActivity extends AppCompatActivity {
 
-    private int cardsFlipped = 0;
+    private int cardsFlipped;
     private ArrayList<Button> buttons;
     private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<CardPair> cardsPairs;
@@ -42,31 +42,26 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<Integer> mapCardsToButtons;
     private boolean isDone;
     private int matched;
-    private TableLayout cardsTable;
     private int urlIndex;
-    private TextView victory;
+    private TextView score;
+    private TextView state;
     private ImageButton returnMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-        cardsTable = findViewById(R.id.cardsTable);
-        victory = findViewById(R.id.victory);
+        score = findViewById(R.id.score);
+        state = findViewById(R.id.state);
         returnMain = findViewById(R.id.returnMain);
 
+        cardsFlipped = 0;
         matched = 0;
         int numberOfCards = 2;
-        numberOfCards = getIntent().getIntExtra("numberOfPairs",2);
-        numberOfCards = numberOfCards * 2;
-        Log.d("numberOfPair", Integer.toString(numberOfCards));
+        numberOfCards = 2 * getIntent().getIntExtra("numberOfPairs",2);
 
         generateRandomPairs(numberOfCards);
         generateCardsFrontImage(numberOfCards);
-        setCards(numberOfCards);
-        for (CardPair p : cardsPairs) {
-            Log.d("Pairs", Integer.toString(p.getFirstID()) + " and " + Integer.toString(p.getSecondID()));
-        }
     }
 
     @Override
@@ -112,14 +107,30 @@ public class GameActivity extends AppCompatActivity {
     private void generateCardsFrontImage(int numberOfCards){
         ImagesURLs = new ArrayList<String>();
         new GetJsonData().execute();
+
         isDone = false;
-        while(!isDone){Log.d("isDone", "false");}
+        boolean runOnce = false;
+        while(!isDone){
+            if (!runOnce) {
+                setCards(numberOfCards);
+                runOnce = true;
+            }
+        }
+
+        runOnce = false;
         Random rnd = new Random();
         for (int i = 0; i < numberOfCards / 2; ++i) {
             urlIndex = rnd.nextInt(ImagesURLs.size());
             new DownloadImageTask().execute();
+
             isDone = false;
-            while(!isDone){Log.d("isDone", "false");}
+            while(!isDone){
+                if (!runOnce) {
+                    setCardsFlipping(numberOfCards);
+                    runOnce = true;
+                }
+            }
+
             cardsPairs.get(i).setFrontImage(drawable);
             ImagesURLs.remove(urlIndex);
         }
@@ -136,7 +147,6 @@ public class GameActivity extends AppCompatActivity {
                 mapCardsToButtons.add(index);
             }
         };
-        setCardsFlipping(numberOfCards);
     }
 
     private int getMatchingID(int index) {
@@ -241,9 +251,13 @@ public class GameActivity extends AppCompatActivity {
                 flipCardsBack();
             } else {
                 ++matched;
+                state.setText("IT'S A MATCH!");
+                state.setVisibility(View.VISIBLE);
+                score.setText("Score: " + Integer.toString(matched) + " / " + Integer.toString(cardsPairs.size()));
                 if (matched == cardsPairs.size())
                 {
-                    victory.setVisibility(View.VISIBLE);
+                    state.setText("YOU WIN!");
+                    state.setVisibility(View.VISIBLE);
                     returnMain.setVisibility(View.VISIBLE);
                     returnMain.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
@@ -267,6 +281,7 @@ public class GameActivity extends AppCompatActivity {
         pair0.setMode(0);
         pair1.setMode(0);
         cardsFlipped = 0;
+        state.setVisibility(View.INVISIBLE);
         cardsFlippedIndex.clear();
     }
 
