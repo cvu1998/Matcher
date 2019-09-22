@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;;
 import android.widget.Button;
@@ -43,8 +44,10 @@ public class GameActivity extends AppCompatActivity {
     private boolean isDone;
     private int matched;
     private int urlIndex;
+    private long startTime = 0;
     private TextView score;
     private TextView state;
+    private TextView timer;
     private ImageButton returnMain;
 
     @Override
@@ -53,6 +56,7 @@ public class GameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
         score = findViewById(R.id.score);
         state = findViewById(R.id.state);
+        timer = (TextView) findViewById(R.id.timer);
         returnMain = findViewById(R.id.returnMain);
 
         cardsFlipped = 0;
@@ -62,6 +66,31 @@ public class GameActivity extends AppCompatActivity {
 
         generateRandomPairs(numberOfCards);
         generateCardsFrontImage(numberOfCards);
+
+        startTime = System.currentTimeMillis();
+        timerHandler.postDelayed(timerRunnable, 0);
+    }
+
+    Handler timerHandler = new Handler();
+    Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - startTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            seconds = seconds % 60;
+
+            timer.setText("Time: " + String.format("%d:%02d", minutes, seconds));
+
+            timerHandler.postDelayed(this, 500);
+        }
+    };
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        timerHandler.removeCallbacks(timerRunnable);
     }
 
     @Override
@@ -259,6 +288,7 @@ public class GameActivity extends AppCompatActivity {
                     state.setText("YOU WIN!");
                     state.setVisibility(View.VISIBLE);
                     returnMain.setVisibility(View.VISIBLE);
+                    timerHandler.removeCallbacks(timerRunnable);
                     returnMain.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
                             goToMain();
