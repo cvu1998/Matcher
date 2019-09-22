@@ -1,13 +1,12 @@
 package com.game.matcher;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -44,25 +43,27 @@ public class UserInputActivity extends AppCompatActivity {
     }
 
     private boolean isValidInput() {
-        CharSequence charSequence = input.getText();
-        String stringInput = charSequence.toString();
-        if (stringInput.length() < 3 && stringInput.matches("[0-9]+")) {
+        String stringInput = input.getText().toString();
+        if (stringInput.matches("[0-9]+")) {
             numberOfPair = Integer.parseInt(stringInput);
             if (numberOfPair > 1) {
-                if (!isOnlyDividableBy2() && numberOfPair < 25) {
-                    return true;
-                } else if (isOnlyDividableBy2() && numberOfPair < 11) {
-                    return true;
+                if (numberOfPair < 25) {
+                    if (!isOnlyDividableBy2()) {
+                        return true;
+                    } else if (numberOfPair < 11 && isOnlyDividableBy2()) {
+                        return true;
+                    } else {
+                        invalidInput.setText("Input should be a multiple of 2 or 3 or smaller than 11");
+                    }
                 } else {
-                    invalidInput.setText("Number of pairs too large (ideally number is multiple of 2 or 3)");
-                    invalidInput.setVisibility(View.VISIBLE);
-                    return false;
+                    invalidInput.setText("Input must be smaller than 25");
                 }
             } else {
-                invalidInput.setText("Input is too small");
+                invalidInput.setText("Input must be over 1");
             }
+        } else {
+            invalidInput.setText("Input is not an integer");
         }
-        invalidInput.setText("Input contains too many characters (max 2) or is not an integer");
         invalidInput.setVisibility(View.VISIBLE);
         return false;
     }

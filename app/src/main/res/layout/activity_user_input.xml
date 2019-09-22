@@ -32,6 +32,7 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input"
+            android:textColor="#ffffff"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Input Number of Card Pairs" />
