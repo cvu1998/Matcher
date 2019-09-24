@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TableRow;
@@ -46,6 +47,7 @@ public class GameActivity extends AppCompatActivity {
     private long startTime;
     private boolean isDone;
     private Drawable drawable;
+    private Handler handler;
     private TextView score;
     private TextView state;
     private TextView timer;
@@ -59,6 +61,7 @@ public class GameActivity extends AppCompatActivity {
         state = findViewById(R.id.state);
         timer = (TextView) findViewById(R.id.timer);
         returnMain = findViewById(R.id.returnMain);
+        handler = new Handler();
 
         cardsFlipped = 0;
         matched = 0;
@@ -69,10 +72,9 @@ public class GameActivity extends AppCompatActivity {
         generateCardsFrontImage(numberOfCards);
 
         startTime = System.currentTimeMillis();
-        timerHandler.postDelayed(timerRunnable, 0);
+        handler.postDelayed(timerRunnable, 0);
     }
 
-    Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable() {
 
         @Override
@@ -84,14 +86,14 @@ public class GameActivity extends AppCompatActivity {
 
             timer.setText("Time: " + String.format("%d:%02d", minutes, seconds));
 
-            timerHandler.postDelayed(this, 500);
+            handler.postDelayed(this, 500);
         }
     };
 
     @Override
     public void onPause() {
         super.onPause();
-        timerHandler.removeCallbacks(timerRunnable);
+        handler.removeCallbacks(timerRunnable);
     }
 
     @Override
@@ -269,7 +271,15 @@ public class GameActivity extends AppCompatActivity {
         ++cardsFlipped;
         if (cardsFlipped == 2) {
             if (pair.getMode() != 3) {
-                flipCardsBack();
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        flipCardsBack();
+                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                    }
+                }, 500);
             } else {
                 ++matched;
                 score.setText("Score: " + Integer.toString(matched) + " / " + Integer.toString(cardsPairs.size()));
@@ -277,7 +287,7 @@ public class GameActivity extends AppCompatActivity {
                 {
                     state.setText("YOU WIN!");
                     state.setVisibility(View.VISIBLE);
-                    timerHandler.removeCallbacks(timerRunnable);
+                    handler.removeCallbacks(timerRunnable);
 
                     returnMain.setVisibility(View.VISIBLE);
                     returnMain.setOnClickListener(new View.OnClickListener() {

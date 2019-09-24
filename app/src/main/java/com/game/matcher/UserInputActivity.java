@@ -49,7 +49,11 @@ public class UserInputActivity extends AppCompatActivity {
             if (numberOfPair > 1) {
                 if (numberOfPair < 25) {
                     if (!isOnlyDividableBy2()) {
-                        return true;
+                        if ((numberOfPair * 2 % 3 == 0 && numberOfPair <= 15) || numberOfPair * 2 % 4 == 0) {
+                            return true;
+                        } else {
+                            invalidInput.setText("Input should be a multiple of 2 or smaller than 16");
+                        }
                     } else if (numberOfPair < 11 && isOnlyDividableBy2()) {
                         return true;
                     } else {
@@ -62,14 +66,14 @@ public class UserInputActivity extends AppCompatActivity {
                 invalidInput.setText("Input must be over 1");
             }
         } else {
-            invalidInput.setText("Input is not an integer");
+            invalidInput.setText("Input is not a positive integer");
         }
         invalidInput.setVisibility(View.VISIBLE);
         return false;
     }
 
     private boolean isOnlyDividableBy2() {
-       if (numberOfPair % 3 > 0 && numberOfPair % 4 > 0) {
+       if (numberOfPair * 2 % 3 > 0 && numberOfPair * 2 % 4 > 0) {
            return true;
        }
        return false;
