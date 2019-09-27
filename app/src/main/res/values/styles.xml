@@ -21,6 +21,6 @@
     <style name="gameText" parent="TextAppearance.AppCompat">
         <item name="android:fontFamily">cursive</item>
         <item name="android:textColor">#ffff0000</item>
-        <item name="android:textSize">36dp</item>
+        <item name="android:textSize">22dp</item>
     </style>
 </resources>
