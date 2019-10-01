@@ -1,2 +1,2 @@
 # Matcher
-Game made for Shoppify's Mobile Challenge
+Game made for Shopify's Mobile Challenge
