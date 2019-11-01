@@ -38,6 +38,7 @@ public class UserInputActivity extends AppCompatActivity {
         if (isValidInput()) {
             Intent intent = new Intent(this, GameActivity.class);
             intent.putExtra("numberOfPairs", numberOfPair);
+            input.getText().clear();
             startActivity(intent);
         }
     }
@@ -47,23 +48,19 @@ public class UserInputActivity extends AppCompatActivity {
         if (stringInput.matches("[0-9]+")) {
             numberOfPair = Integer.parseInt(stringInput);
             if (numberOfPair > 1) {
-                if (numberOfPair < 25) {
+                if (numberOfPair < 21) {
                     if (!isOnlyDividableBy2()) {
-                        if ((numberOfPair * 2 % 3 == 0 && numberOfPair <= 15) || numberOfPair * 2 % 4 == 0) {
                             return true;
-                        } else {
-                            invalidInput.setText("Input should be a multiple of 2 or smaller than 16");
-                        }
                     } else if (numberOfPair < 11 && isOnlyDividableBy2()) {
                         return true;
                     } else {
-                        invalidInput.setText("Input should be a multiple of 2 or 3 or smaller than 11");
+                        invalidInput.setText("Input should be a multiple of 2 or 3 or smaller or equal to 10");
                     }
                 } else {
-                    invalidInput.setText("Input must be smaller than 25");
+                    invalidInput.setText("Input must be smaller or equal to 20");
                 }
             } else {
-                invalidInput.setText("Input must be over 1");
+                invalidInput.setText("Input must be bigger than 1");
             }
         } else {
             invalidInput.setText("Input is not a positive integer");

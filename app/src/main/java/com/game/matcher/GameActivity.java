@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -63,6 +64,7 @@ public class GameActivity extends AppCompatActivity {
         returnMain = findViewById(R.id.returnMain);
         handler = new Handler();
 
+        isDone = false;
         cardsFlipped = 0;
         matched = 0;
         numberOfCards = 2 * getIntent().getIntExtra("numberOfPairs",2);
@@ -83,11 +85,25 @@ public class GameActivity extends AppCompatActivity {
             int minutes = seconds / 60;
             seconds = seconds % 60;
 
+            if (seconds > 3) {
+                isDone = true;
+            }
+
             timer.setText("Time: " + String.format("%d:%02d", minutes, seconds));
 
             handler.postDelayed(this, 500);
         }
     };
+
+    @Override
+    public void onBackPressed() {
+        if (isDone) {
+            super.onBackPressed();
+        }
+        else {
+             Toast.makeText(GameActivity.this, "Recalibrating!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public void onPause() {
@@ -99,6 +115,9 @@ public class GameActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         //Clear everything
+        isDone = false;
+        cardsFlipped = 0;
+        matched = 0;
         buttons.clear();
         cardsFlippedIndex.clear();
         cardsPairs.clear();
@@ -138,22 +157,7 @@ public class GameActivity extends AppCompatActivity {
     private void generateCardsFrontImage(){
         ImagesURLs = new ArrayList<String>();
         new GetJsonData().execute();
-
-        isDone = false;
-        boolean runOnce = false;
-        while(!isDone){
-            if (!runOnce) {
-                setCards();
-                runOnce = true;
-            }
-        }
-
-        //Set front image for cards
-        Random rnd = new Random();
-        for (int i = 0; i < numberOfCards / 2; ++i) {
-            urlIndex = rnd.nextInt(ImagesURLs.size());
-            new DownloadImageTask(i).execute();
-        }
+        setCards();
         setCardsFlipping();
     }
 
@@ -345,7 +349,13 @@ public class GameActivity extends AppCompatActivity {
                 for (int i = 0; i < products.length(); ++i) {
                     ImagesURLs.add(products.getJSONObject(i).getJSONObject("image").getString("src"));
                 }
-                isDone = true;
+
+                //Set front image for cards
+                Random rnd = new Random();
+                for (int i = 0; i < numberOfCards / 2; ++i) {
+                    urlIndex = rnd.nextInt(ImagesURLs.size());
+                    new DownloadImageTask(i).execute();
+                }
             } catch (JSONException e) {
 
                 e.printStackTrace();
