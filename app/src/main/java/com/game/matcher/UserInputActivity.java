@@ -22,7 +22,7 @@ public class UserInputActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_input);
 
-        buttonReady = (ImageButton) findViewById(R.id.buttonReady);
+        buttonReady = findViewById(R.id.buttonReady);
         input = findViewById(R.id.input);
         invalidInput = findViewById(R.id.invalid);
 

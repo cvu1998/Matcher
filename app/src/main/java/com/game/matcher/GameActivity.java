@@ -41,12 +41,12 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<Integer> mapCardsToButtons;
     private ArrayList<String> ImagesURLs;
+    private int numberOfCards;
     private int cardsFlipped;
     private int matched;
     private int urlIndex;
     private long startTime;
     private boolean isDone;
-    private Drawable drawable;
     private Handler handler;
     private TextView score;
     private TextView state;
@@ -59,17 +59,16 @@ public class GameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
         score = findViewById(R.id.score);
         state = findViewById(R.id.state);
-        timer = (TextView) findViewById(R.id.timer);
+        timer = findViewById(R.id.timer);
         returnMain = findViewById(R.id.returnMain);
         handler = new Handler();
 
         cardsFlipped = 0;
         matched = 0;
-        int numberOfCards = 2;
         numberOfCards = 2 * getIntent().getIntExtra("numberOfPairs",2);
 
-        generateRandomPairs(numberOfCards);
-        generateCardsFrontImage(numberOfCards);
+        generateRandomPairs();
+        generateCardsFrontImage();
 
         startTime = System.currentTimeMillis();
         handler.postDelayed(timerRunnable, 0);
@@ -107,7 +106,7 @@ public class GameActivity extends AppCompatActivity {
         mapCardsToButtons.clear();
     }
 
-    private void generateRandomPairs(int numberOfCards){
+    private void generateRandomPairs(){
         cardsPairs = new ArrayList<CardPair>();
         ArrayList<Integer> cardsID = new ArrayList<Integer>();
         for(int i = 0; i < numberOfCards; ++i) {
@@ -136,7 +135,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    private void generateCardsFrontImage(int numberOfCards){
+    private void generateCardsFrontImage(){
         ImagesURLs = new ArrayList<String>();
         new GetJsonData().execute();
 
@@ -144,37 +143,26 @@ public class GameActivity extends AppCompatActivity {
         boolean runOnce = false;
         while(!isDone){
             if (!runOnce) {
-                setCards(numberOfCards);
+                setCards();
                 runOnce = true;
             }
         }
 
-        runOnce = false;
+        //Set front image for cards
         Random rnd = new Random();
         for (int i = 0; i < numberOfCards / 2; ++i) {
             urlIndex = rnd.nextInt(ImagesURLs.size());
-            new DownloadImageTask().execute();
-
-            isDone = false;
-            while(!isDone){
-                if (!runOnce) {
-                    setCardsFlipping(numberOfCards);
-                    runOnce = true;
-                }
-            }
-
-            cardsPairs.get(i).setFrontImage(drawable);
-            ImagesURLs.remove(urlIndex);
+            new DownloadImageTask(i).execute();
         }
+        setCardsFlipping();
     }
 
-    private void setCards(int numberOfCards) {
+    private void setCards() {
         buttons = new ArrayList<Button>();
         cardsFlippedIndex = new ArrayList<Integer>();
         mapCardsToButtons = new ArrayList<Integer>() ;
-        int index = -1;
         for (int i = 0; i < numberOfCards; ++i) {
-            index = getMatchingID(i);
+            int index = getMatchingID(i);
             if (index > -1) {
                 mapCardsToButtons.add(index);
             }
@@ -190,7 +178,7 @@ public class GameActivity extends AppCompatActivity {
         return -1;
     }
 
-    private void setCardsFlipping(int numberOfCards) {
+    private void setCardsFlipping() {
         int height = 260;
         int padding= 20;
         int z = 0;
@@ -392,6 +380,11 @@ public class GameActivity extends AppCompatActivity {
 
     private class DownloadImageTask extends AsyncTask<String, Void, Void> {
         Bitmap bitmap;
+        int index;
+
+        public DownloadImageTask(int index) {
+            this.index = index;
+        }
 
         @Override
         protected Void doInBackground(String... strings) {
@@ -400,8 +393,9 @@ public class GameActivity extends AppCompatActivity {
             try {
                 InputStream in = new java.net.URL(url).openStream();
                 bitmap = BitmapFactory.decodeStream(in);
-                drawable = new BitmapDrawable(getResources(), bitmap);
-                isDone = true;
+                Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                cardsPairs.get(index).setFrontImage(drawable);
+                ImagesURLs.remove(urlIndex);
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
