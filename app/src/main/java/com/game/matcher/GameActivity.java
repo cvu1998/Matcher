@@ -65,9 +65,13 @@ public class GameActivity extends AppCompatActivity {
         handler = new Handler();
 
         isDone = false;
+        startTime = 3000;
         cardsFlipped = 0;
         matched = 0;
         numberOfCards = 2 * getIntent().getIntExtra("numberOfPairs",2);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
         generateRandomPairs();
         generateCardsFrontImage();
@@ -87,9 +91,12 @@ public class GameActivity extends AppCompatActivity {
 
             if (seconds > 3) {
                 isDone = true;
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                timer.setText("Time: " + String.format("%d:%02d", minutes, seconds - 3));
             }
-
-            timer.setText("Time: " + String.format("%d:%02d", minutes, seconds));
+            else {
+                timer.setText("Start In: " + Integer.toString(3 - seconds));
+            }
 
             handler.postDelayed(this, 500);
         }
@@ -108,7 +115,15 @@ public class GameActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(timerRunnable);
+        isDone = false;
+        cardsFlipped = 0;
+        matched = 0;
+        buttons.clear();
+        cardsFlippedIndex.clear();
+        cardsPairs.clear();
+        ImagesURLs.clear();
+        mapCardsToButtons.clear();
+        startActivity(new Intent(this ,MainActivity.class));
     }
 
     @Override
@@ -275,6 +290,7 @@ public class GameActivity extends AppCompatActivity {
             } else {
                 ++matched;
                 score.setText("Score: " + Integer.toString(matched) + " / " + Integer.toString(cardsPairs.size()));
+                Log.d("match", Integer.toString(matched));
                 if (matched == cardsPairs.size())
                 {
                     state.setText("YOU WIN!");
@@ -352,7 +368,7 @@ public class GameActivity extends AppCompatActivity {
 
                 //Set front image for cards
                 Random rnd = new Random();
-                for (int i = 0; i < numberOfCards / 2; ++i) {
+                for (int i = 0; i < cardsPairs.size(); ++i) {
                     urlIndex = rnd.nextInt(ImagesURLs.size());
                     new DownloadImageTask(i).execute();
                 }
