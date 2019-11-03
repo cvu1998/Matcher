@@ -76,6 +76,11 @@ public class GameActivity extends AppCompatActivity {
         generateRandomPairs();
         generateCardsFrontImage();
 
+        for(CardPair cp : cardsPairs) {
+            Log.d("pair", Integer.toString(cp.getFirstID()) + " " + Integer.toString(cp.getSecondID()));
+        }
+
+
         startTime = System.currentTimeMillis();
         handler.postDelayed(timerRunnable, 0);
     }
@@ -284,7 +289,6 @@ public class GameActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         flipCardsBack();
-                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 }, 500);
             } else {
@@ -323,6 +327,7 @@ public class GameActivity extends AppCompatActivity {
         state.setVisibility(View.INVISIBLE);
         cardsFlipped = 0;
         cardsFlippedIndex.clear();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     private void goToMain() {
