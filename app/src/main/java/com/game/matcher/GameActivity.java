@@ -33,8 +33,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Random;
 
-;
-
 public class GameActivity extends AppCompatActivity {
 
     private ArrayList<Button> buttons;
@@ -42,13 +40,18 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<Integer> cardsFlippedIndex;
     private ArrayList<Integer> mapCardsToButtons;
     private ArrayList<String> ImagesURLs;
+
+    private boolean isDone;
     private int numberOfCards;
     private int cardsFlipped;
     private int matched;
     private int urlIndex;
     private long startTime;
-    private boolean isDone;
+
+    private AsyncTask getJson;
+    private AsyncTask getImages;
     private Handler handler;
+
     private TextView score;
     private TextView state;
     private TextView timer;
@@ -77,7 +80,7 @@ public class GameActivity extends AppCompatActivity {
         generateCardsFrontImage();
 
         for(CardPair cp : cardsPairs) {
-            Log.d("pair", Integer.toString(cp.getFirstID()) + " " + Integer.toString(cp.getSecondID()));
+            Log.d("pair", (cp.getFirstID()) + " " + (cp.getSecondID()));
         }
 
 
@@ -89,18 +92,20 @@ public class GameActivity extends AppCompatActivity {
 
         @Override
         public void run() {
+            int loadTime = 3;
+
             long millis = System.currentTimeMillis() - startTime;
             int seconds = (int) (millis / 1000);
             int minutes = seconds / 60;
             seconds = seconds % 60;
 
-            if (seconds > 3) {
+            if (seconds > loadTime) {
                 isDone = true;
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                timer.setText("Time: " + String.format("%d:%02d", minutes, seconds - 3));
+                timer.setText("Time: " + String.format("%d:%02d", minutes, seconds - loadTime));
             }
             else {
-                timer.setText("Start In: " + Integer.toString(3 - seconds));
+                timer.setText("Start In: " +(loadTime - seconds));
             }
 
             handler.postDelayed(this, 500);
@@ -111,43 +116,56 @@ public class GameActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (isDone) {
             super.onBackPressed();
+
+            isDone = false;
+            urlIndex = 0;
+            cardsFlipped = 0;
+            matched = 0;
+            buttons.clear();
+            ImagesURLs.clear();
+            cardsPairs.clear();
+            cardsFlippedIndex.clear();
+            mapCardsToButtons.clear();
         }
         else {
-             Toast.makeText(GameActivity.this, "Recalibrating!", Toast.LENGTH_SHORT).show();
+             Toast.makeText(GameActivity.this, "Loading!", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Log.d("onPause", "pause");
+        if (getJson != null) {
+            if (getJson.getStatus() == AsyncTask.Status.RUNNING) {
+                Log.d("onPause", "getJson cancelled");
+                getJson.cancel(true);
+            }
+        }
+        if (getImages != null) {
+            if (getImages.getStatus() == AsyncTask.Status.RUNNING) {
+                Log.d("onPause", "getImages cancelled");
+                getImages.cancel(true);
+            }
+        }
+
         isDone = false;
+        urlIndex = 0;
         cardsFlipped = 0;
         matched = 0;
         buttons.clear();
-        cardsFlippedIndex.clear();
-        cardsPairs.clear();
         ImagesURLs.clear();
+        cardsPairs.clear();
+        cardsFlippedIndex.clear();
         mapCardsToButtons.clear();
+
+        Toast.makeText(GameActivity.this, "Reload", Toast.LENGTH_SHORT).show();
         startActivity(new Intent(this ,MainActivity.class));
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //Clear everything
-        isDone = false;
-        cardsFlipped = 0;
-        matched = 0;
-        buttons.clear();
-        cardsFlippedIndex.clear();
-        cardsPairs.clear();
-        ImagesURLs.clear();
-        mapCardsToButtons.clear();
-    }
-
     private void generateRandomPairs(){
-        cardsPairs = new ArrayList<CardPair>();
-        ArrayList<Integer> cardsID = new ArrayList<Integer>();
+        cardsPairs = new ArrayList<>();
+        ArrayList<Integer> cardsID = new ArrayList<>();
         for(int i = 0; i < numberOfCards; ++i) {
             cardsID.add(i);
         }
@@ -175,16 +193,16 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void generateCardsFrontImage(){
-        ImagesURLs = new ArrayList<String>();
-        new GetJsonData().execute();
+        ImagesURLs = new ArrayList<>();
+        getJson = new GetJsonData().execute();
         setCards();
         setCardsFlipping();
     }
 
     private void setCards() {
-        buttons = new ArrayList<Button>();
-        cardsFlippedIndex = new ArrayList<Integer>();
-        mapCardsToButtons = new ArrayList<Integer>() ;
+        buttons = new ArrayList<>();
+        cardsFlippedIndex = new ArrayList<>();
+        mapCardsToButtons = new ArrayList<>() ;
         for (int i = 0; i < numberOfCards; ++i) {
             int index = getMatchingID(i);
             if (index > -1) {
@@ -289,14 +307,14 @@ public class GameActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         flipCardsBack();
+                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 }, 500);
             } else {
                 ++matched;
-                score.setText("Score: " + Integer.toString(matched) + " / " + Integer.toString(cardsPairs.size()));
+                score.setText("Score: " + matched + " / " + (cardsPairs.size()));
                 Log.d("match", Integer.toString(matched));
-                if (matched == cardsPairs.size())
-                {
+                if (matched == cardsPairs.size()) {
                     state.setText("YOU WIN!");
                     state.setVisibility(View.VISIBLE);
                     handler.removeCallbacks(timerRunnable);
@@ -311,6 +329,7 @@ public class GameActivity extends AppCompatActivity {
                     state.setText("IT'S A MATCH!");
                     state.setVisibility(View.VISIBLE);
                 }
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                 cardsFlipped = 0;
                 cardsFlippedIndex.clear();
             }
@@ -318,16 +337,14 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void flipCardsBack() {
-        cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(0))).setMode(0);
-        cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(1))).setMode(0);
-        buttons.get(cardsFlippedIndex.get(0)).setBackgroundResource(R.drawable.logo);
-        buttons.get(cardsFlippedIndex.get(0)).setEnabled(true);
-        buttons.get(cardsFlippedIndex.get(1)).setBackgroundResource(R.drawable.logo);
-        buttons.get(cardsFlippedIndex.get(1)).setEnabled(true);
+        for (int i = 0; i < cardsFlippedIndex.size(); ++i) {
+            cardsPairs.get(mapCardsToButtons.get(cardsFlippedIndex.get(i))).setMode(0);
+            buttons.get(cardsFlippedIndex.get(i)).setBackgroundResource(R.drawable.logo);
+            buttons.get(cardsFlippedIndex.get(i)).setEnabled(true);
+        }
         state.setVisibility(View.INVISIBLE);
         cardsFlipped = 0;
         cardsFlippedIndex.clear();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     private void goToMain() {
@@ -359,9 +376,7 @@ public class GameActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onCancelled() {
-            handleOnCancelled();
-        }
+        protected void onCancelled() { }
 
         private void getData() throws IOException, JSONException {
             JSONObject json = readJsonFromUrl("https://shopicruit.myshopify.com/admin/products.json?page=1&access_token=c32313df0d0ef512ca64d5b336a0d7c6");
@@ -374,8 +389,8 @@ public class GameActivity extends AppCompatActivity {
                 //Set front image for cards
                 Random rnd = new Random();
                 for (int i = 0; i < cardsPairs.size(); ++i) {
-                    urlIndex = rnd.nextInt(ImagesURLs.size());
-                    new DownloadImageTask(i).execute();
+                    urlIndex = rnd.nextInt(ImagesURLs.size() - cardsPairs.size());
+                    getImages = new DownloadImageTask(i).execute();
                 }
             } catch (JSONException e) {
 
@@ -403,10 +418,6 @@ public class GameActivity extends AppCompatActivity {
                 is.close();
             }
         }
-
-        private void handleOnCancelled() {
-            ImagesURLs.clear();
-        }
     }
 
     private class DownloadImageTask extends AsyncTask<String, Void, Void> {
@@ -419,17 +430,19 @@ public class GameActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... strings) {
-            String url = ImagesURLs.get(urlIndex);
-            bitmap = null;
-            try {
-                InputStream in = new java.net.URL(url).openStream();
-                bitmap = BitmapFactory.decodeStream(in);
-                Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-                cardsPairs.get(index).setFrontImage(drawable);
-                ImagesURLs.remove(urlIndex);
-            } catch (Exception e) {
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
+            if (!ImagesURLs.isEmpty() && !cardsPairs.isEmpty()) {
+                String url = ImagesURLs.get(urlIndex);
+                bitmap = null;
+                try {
+                    InputStream in = new java.net.URL(url).openStream();
+                    bitmap = BitmapFactory.decodeStream(in);
+                    Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                    cardsPairs.get(index).setFrontImage(drawable);
+                    ImagesURLs.remove(urlIndex);
+                } catch (Exception e) {
+                    Log.e("Error", e.getMessage());
+                    e.printStackTrace();
+                }
             }
             return null;
         }
@@ -437,6 +450,12 @@ public class GameActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected void onCancelled() {
+            index = 0;
+            urlIndex = 0;
         }
     }
 }

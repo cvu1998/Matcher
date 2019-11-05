@@ -11,8 +11,6 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 public class MainActivity extends AppCompatActivity {
 
     private ImageButton buttonPlay;
@@ -35,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //Function used to send the user to GradeActivty
     private void goToUserInputActivity() {
             startActivity(new Intent(this, UserInputActivity.class));
     }
