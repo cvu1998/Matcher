@@ -1,10 +1,13 @@
 package com.game.matcher;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,6 +64,13 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        if (!isNetworkAvailable()) {
+            Toast.makeText(GameActivity.this, "No internet connection!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this ,MainActivity.class));
+        }
+
+
         score = findViewById(R.id.score);
         state = findViewById(R.id.state);
         timer = findViewById(R.id.timer);
@@ -116,16 +126,6 @@ public class GameActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (isDone) {
             super.onBackPressed();
-
-            isDone = false;
-            urlIndex = 0;
-            cardsFlipped = 0;
-            matched = 0;
-            buttons.clear();
-            ImagesURLs.clear();
-            cardsPairs.clear();
-            cardsFlippedIndex.clear();
-            mapCardsToButtons.clear();
         }
         else {
              Toast.makeText(GameActivity.this, "Loading!", Toast.LENGTH_SHORT).show();
@@ -159,8 +159,14 @@ public class GameActivity extends AppCompatActivity {
         cardsFlippedIndex.clear();
         mapCardsToButtons.clear();
 
-        Toast.makeText(GameActivity.this, "Reload", Toast.LENGTH_SHORT).show();
         startActivity(new Intent(this ,MainActivity.class));
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     private void generateRandomPairs(){
