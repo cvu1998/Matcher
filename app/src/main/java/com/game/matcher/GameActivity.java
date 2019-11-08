@@ -44,7 +44,7 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<Integer> mapCardsToButtons;
     private ArrayList<String> ImagesURLs;
 
-    private boolean isDone;
+    private boolean started;
     private int numberOfCards;
     private int cardsFlipped;
     private int matched;
@@ -77,14 +77,12 @@ public class GameActivity extends AppCompatActivity {
         returnMain = findViewById(R.id.returnMain);
         handler = new Handler();
 
-        isDone = false;
-        startTime = 3000;
+        started = false;
         cardsFlipped = 0;
         matched = 0;
         numberOfCards = 2 * getIntent().getIntExtra("numberOfPairs",2);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
         generateRandomPairs();
         generateCardsFrontImage();
@@ -109,12 +107,12 @@ public class GameActivity extends AppCompatActivity {
             int minutes = seconds / 60;
             seconds = seconds % 60;
 
-            if (seconds > loadTime) {
-                isDone = true;
+            if (seconds > loadTime && !started) {
+                started = true;
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            } else if (seconds > loadTime && started) {
                 timer.setText("Time: " + String.format("%d:%02d", minutes, seconds - loadTime));
-            }
-            else {
+            } else {
                 timer.setText("Start In: " +(loadTime - seconds));
             }
 
@@ -124,7 +122,7 @@ public class GameActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (isDone) {
+        if (started) {
             super.onBackPressed();
         }
         else {
@@ -149,7 +147,7 @@ public class GameActivity extends AppCompatActivity {
             }
         }
 
-        isDone = false;
+        started = false;
         urlIndex = 0;
         cardsFlipped = 0;
         matched = 0;
@@ -307,8 +305,7 @@ public class GameActivity extends AppCompatActivity {
         ++cardsFlipped;
         if (cardsFlipped == 2) {
             if (pair.getMode() != 3) {
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
