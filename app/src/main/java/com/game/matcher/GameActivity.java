@@ -70,7 +70,6 @@ public class GameActivity extends AppCompatActivity {
             startActivity(new Intent(this ,MainActivity.class));
         }
 
-
         score = findViewById(R.id.score);
         state = findViewById(R.id.state);
         timer = findViewById(R.id.timer);
@@ -90,7 +89,6 @@ public class GameActivity extends AppCompatActivity {
         for(CardPair cp : cardsPairs) {
             Log.d("pair", (cp.getFirstID()) + " " + (cp.getSecondID()));
         }
-
 
         startTime = System.currentTimeMillis();
         handler.postDelayed(timerRunnable, 0);
@@ -124,8 +122,7 @@ public class GameActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (started) {
             super.onBackPressed();
-        }
-        else {
+        } else {
              Toast.makeText(GameActivity.this, "Loading!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -187,7 +184,7 @@ public class GameActivity extends AppCompatActivity {
                 }
                 cardsID.remove(index);
                 ++nRolls;
-            } else if (ID1 != -1 && ID2 != -1) {
+            } else if (ID1 > 0 -1 && ID2 > -1) {
                 cardsPairs.add(new CardPair(this, ID1, ID2));
                 ID1 = -1;
                 ID2 = -1;
@@ -212,7 +209,7 @@ public class GameActivity extends AppCompatActivity {
             if (index > -1) {
                 mapCardsToButtons.add(index);
             }
-        };
+        }
     }
 
     private int getMatchingID(int index) {
@@ -254,8 +251,8 @@ public class GameActivity extends AppCompatActivity {
                 card.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         int buttonIndex = (Integer)v.getTag();
-                        cardsFlippedIndex.add(buttonIndex);
                         int index = mapCardsToButtons.get(buttonIndex);
+                        cardsFlippedIndex.add(buttonIndex);
                         updateCardsPairs(buttonIndex, cardsPairs.get(index), buttons.get(cardsPairs.get(index).getFirstID()), buttons.get(cardsPairs.get(index).getSecondID()));
                     }
                 });
@@ -279,7 +276,7 @@ public class GameActivity extends AppCompatActivity {
             }
         }
         nRowNElements[0] = row;
-        nRowNElements [1] = nElementsInRow;
+        nRowNElements[1] = nElementsInRow;
         return nRowNElements;
     }
 
@@ -332,7 +329,6 @@ public class GameActivity extends AppCompatActivity {
                     state.setText("IT'S A MATCH!");
                     state.setVisibility(View.VISIBLE);
                 }
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                 cardsFlipped = 0;
                 cardsFlippedIndex.clear();
             }
