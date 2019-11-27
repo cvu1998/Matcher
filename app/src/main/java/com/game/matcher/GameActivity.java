@@ -65,11 +65,6 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        if (!isNetworkAvailable()) {
-            Toast.makeText(GameActivity.this, "No internet connection!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this ,MainActivity.class));
-        }
-
         score = findViewById(R.id.score);
         state = findViewById(R.id.state);
         timer = findViewById(R.id.timer);
@@ -92,7 +87,23 @@ public class GameActivity extends AppCompatActivity {
 
         startTime = System.currentTimeMillis();
         handler.postDelayed(timerRunnable, 0);
+        handler.postDelayed(networkCheck, 0);
     }
+
+    Runnable networkCheck = new Runnable() {
+        @Override
+        public void run() {
+            ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getSystemService(GameActivity.this.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            if (activeNetworkInfo == null || !activeNetworkInfo.isConnected()) {
+                Toast.makeText(GameActivity.this, "No internet connection!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(GameActivity.this, MainActivity.class));
+            } else {
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     Runnable timerRunnable = new Runnable() {
 
@@ -157,11 +168,10 @@ public class GameActivity extends AppCompatActivity {
         startActivity(new Intent(this ,MainActivity.class));
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    @Override
+    protected void onStop() {
+        handler.removeCallbacksAndMessages(null);
+        super.onStop();
     }
 
     private void generateRandomPairs(){

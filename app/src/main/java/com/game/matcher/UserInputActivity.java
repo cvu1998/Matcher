@@ -1,6 +1,9 @@
 package com.game.matcher;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -28,7 +31,19 @@ public class UserInputActivity extends AppCompatActivity {
 
         buttonReady.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                goToGameActivity();
+                ConnectivityManager connectivityManager
+                        = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+                if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
+
+                } else {
+                    if (isValidInput()) {
+                        Intent intent = new Intent(UserInputActivity.this, GameActivity.class);
+                        intent.putExtra("numberOfPairs", numberOfPair);
+                        input.getText().clear();
+                        startActivity(intent);
+                    }
+                }
             }
         });
     }
@@ -36,16 +51,6 @@ public class UserInputActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         startActivity(new Intent(this, MainActivity.class));
-    }
-
-    //Function used to send the user to GradeActivty
-    private void goToGameActivity() {
-        if (isValidInput()) {
-            Intent intent = new Intent(this, GameActivity.class);
-            intent.putExtra("numberOfPairs", numberOfPair);
-            input.getText().clear();
-            startActivity(intent);
-        }
     }
 
     private boolean isValidInput() {
