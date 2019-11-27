@@ -34,8 +34,8 @@ public class UserInputActivity extends AppCompatActivity {
                 ConnectivityManager connectivityManager
                         = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-                if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-
+                if (activeNetworkInfo == null && !activeNetworkInfo.isConnected()) {
+                    startActivity(new Intent(UserInputActivity.this, MainActivity.class));
                 } else {
                     if (isValidInput()) {
                         Intent intent = new Intent(UserInputActivity.this, GameActivity.class);
