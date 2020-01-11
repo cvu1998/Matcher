@@ -7,7 +7,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,7 +17,7 @@ public class UserInputActivity extends AppCompatActivity {
 
     private ImageButton buttonReady;
     private TextInputEditText input;
-    private TextView invalidInput;
+    private Toast toast;
     private int numberOfPair;
 
     @Override
@@ -27,7 +27,6 @@ public class UserInputActivity extends AppCompatActivity {
 
         buttonReady = findViewById(R.id.buttonReady);
         input = findViewById(R.id.input);
-        invalidInput = findViewById(R.id.invalid);
 
         buttonReady.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -64,18 +63,18 @@ public class UserInputActivity extends AppCompatActivity {
                     } else if (numberOfPair < 11 && isOnlyDividableBy2()) {
                         return true;
                     } else {
-                        invalidInput.setText("Input should be a multiple of 2 or 3 or smaller or equal to 10");
+                        toast = Toast.makeText(this, "Input should be a multiple of 2 or 3 or smaller or equal to 10", Toast.LENGTH_SHORT);
                     }
                 } else {
-                    invalidInput.setText("Input must be smaller or equal to 20");
+                    toast = Toast.makeText(this, "Input must be smaller or equal to 20", Toast.LENGTH_SHORT);
                 }
             } else {
-                invalidInput.setText("Input must be bigger than 1");
+                toast = Toast.makeText(this, "Input must be bigger than 1", Toast.LENGTH_SHORT);
             }
         } else {
-            invalidInput.setText("Input is not a positive integer");
+            toast = Toast.makeText(this, "Input is not a positive integer", Toast.LENGTH_SHORT);
         }
-        invalidInput.setVisibility(View.VISIBLE);
+        toast.show();
         return false;
     }
 
