@@ -45,11 +45,15 @@ public class GameActivity extends AppCompatActivity {
     private ArrayList<String> ImagesURLs;
 
     private boolean started;
+    private long pauseTime;
+    private long resumeTime;
+
     private int numberOfCards;
     private int cardsFlipped;
     private int matched;
     private int urlIndex;
     private long startTime;
+    final private String TAG = "GAME";
 
     private AsyncTask getJson;
     private AsyncTask getImages;
@@ -82,15 +86,19 @@ public class GameActivity extends AppCompatActivity {
         generateCardsFrontImage();
 
         for(CardPair cp : cardsPairs) {
-            Log.d("pair", (cp.getFirstID()) + " " + (cp.getSecondID()));
+            Log.d(TAG, (cp.getFirstID()) + " " + (cp.getSecondID()));
         }
 
         startTime = System.currentTimeMillis();
+        pauseTime = 0;
+        resumeTime = 0;
+
         handler.postDelayed(timerRunnable, 0);
         handler.postDelayed(networkCheck, 0);
     }
 
     Runnable networkCheck = new Runnable() {
+
         @Override
         public void run() {
             ConnectivityManager connectivityManager
@@ -111,7 +119,7 @@ public class GameActivity extends AppCompatActivity {
         public void run() {
             int loadTime = 3;
 
-            long millis = System.currentTimeMillis() - startTime;
+            long millis = System.currentTimeMillis() - startTime - (resumeTime - pauseTime);
             int seconds = (int) (millis / 1000);
             int minutes = seconds / 60;
             seconds = seconds % 60;
@@ -130,46 +138,46 @@ public class GameActivity extends AppCompatActivity {
     };
 
     @Override
-    public void onBackPressed() {
-        if (started) {
-            super.onBackPressed();
-        } else {
-             Toast.makeText(GameActivity.this, "Loading!", Toast.LENGTH_SHORT).show();
+    public void onRestart() {
+        Log.d(TAG, "Resumed!");
+        resumeTime = System.currentTimeMillis();
+
+        if (matched != cardsPairs.size()) {
+            handler.postDelayed(timerRunnable, 500);
+            handler.postDelayed(networkCheck, 1000);
         }
+        super.onRestart();
     }
 
     @Override
     public void onPause() {
+        Log.d(TAG, "Paused!");
+        pauseTime = System.currentTimeMillis();
+
+        if (!started) {
+            Log.d(TAG, "Restarted!");
+            if (getJson != null) {
+                if (getJson.getStatus() == AsyncTask.Status.RUNNING) {
+                    Log.d("onPause", "getJson cancelled!");
+                    getJson.cancel(true);
+                }
+            }
+            if (getImages != null) {
+                if (getImages.getStatus() == AsyncTask.Status.RUNNING) {
+                    Log.d(TAG, "getImages cancelled!");
+                    getImages.cancel(true);
+                }
+            }
+
+            startActivity(new Intent(this, UserInputActivity.class));
+            finish();
+        }
         super.onPause();
-        Log.d("onPause", "pause");
-        if (getJson != null) {
-            if (getJson.getStatus() == AsyncTask.Status.RUNNING) {
-                Log.d("onPause", "getJson cancelled");
-                getJson.cancel(true);
-            }
-        }
-        if (getImages != null) {
-            if (getImages.getStatus() == AsyncTask.Status.RUNNING) {
-                Log.d("onPause", "getImages cancelled");
-                getImages.cancel(true);
-            }
-        }
-
-        started = false;
-        urlIndex = 0;
-        cardsFlipped = 0;
-        matched = 0;
-        buttons.clear();
-        ImagesURLs.clear();
-        cardsPairs.clear();
-        cardsFlippedIndex.clear();
-        mapCardsToButtons.clear();
-
-        startActivity(new Intent(this ,MainActivity.class));
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "Stopped!");
         handler.removeCallbacksAndMessages(null);
         super.onStop();
     }
@@ -252,6 +260,7 @@ public class GameActivity extends AppCompatActivity {
 
                 int adjustedPadding = (int) (padding * scale + 0.5f) / nRowNElements[0];
                 int adjustedHeight = (int) (height * scale + 0.5f) / nRowNElements[0];
+
                 TableRow.LayoutParams params = new TableRow.LayoutParams(0, adjustedHeight, 1);
                 params.setMargins(adjustedPadding,adjustedPadding,adjustedPadding,adjustedPadding);
                 card.setLayoutParams(params);
@@ -321,15 +330,18 @@ public class GameActivity extends AppCompatActivity {
                     }
                 }, 500);
             } else {
+
                 ++matched;
                 score.setText("Score: " + matched + " / " + (cardsPairs.size()));
-                Log.d("match", Integer.toString(matched));
+
                 if (matched == cardsPairs.size()) {
+
                     state.setText("YOU WIN!");
                     state.setVisibility(View.VISIBLE);
                     handler.removeCallbacks(timerRunnable);
 
                     returnMain.setVisibility(View.VISIBLE);
+
                     returnMain.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
                             goToMain();
